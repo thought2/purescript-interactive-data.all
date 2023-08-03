@@ -22,7 +22,7 @@ package:
     - typelevel-prelude: ">=7.0.0 <8.0.0"
   name: interactive-data
   publish:
-    version: 0.1.0
+    version: 0.2.0
     license: BSD-3-Clause
     location:
       githubOwner: thought2
