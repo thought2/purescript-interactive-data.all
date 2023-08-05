@@ -5,13 +5,13 @@ module InteractiveData.Run.Types.HtmlT
 
 import Prelude
 
-import InteractiveData.Core (class IDHtml, IDOutMsg, IDViewCtx)
-import Chameleon (class Html)
-import Chameleon.Styled (class RegisterStyleMap, StyleT, runStyleT)
+import Chameleon (class Html, class MapMaybe)
+import Chameleon.Styled (class HtmlStyled, StyleT, runStyleT)
 import Chameleon.Transformers.Ctx.Class (class AskCtx, class Ctx)
 import Chameleon.Transformers.Ctx.Trans (CtxT, runCtxT)
 import Chameleon.Transformers.OutMsg.Class (class OutMsg, class RunOutMsg)
 import Chameleon.Transformers.OutMsg.Trans (OutMsgT, runOutMsgT)
+import InteractiveData.Core (class IDHtml, IDOutMsg, IDViewCtx)
 
 newtype IDHtmlT html a = IDHtmlT
   ( CtxT IDViewCtx
@@ -23,6 +23,8 @@ newtype IDHtmlT html a = IDHtmlT
 
 derive newtype instance Html html => Html (IDHtmlT html)
 
+derive newtype instance Html html => MapMaybe (IDHtmlT html)
+
 derive newtype instance AskCtx IDViewCtx (IDHtmlT html)
 
 derive newtype instance Ctx IDViewCtx (IDHtmlT html)
@@ -33,7 +35,7 @@ derive newtype instance Html html => RunOutMsg IDOutMsg (IDHtmlT html)
 
 derive instance Functor html => Functor (IDHtmlT html)
 
-derive newtype instance RegisterStyleMap (IDHtmlT html)
+derive newtype instance Html html => HtmlStyled (IDHtmlT html)
 
 instance (Html html) => IDHtml (IDHtmlT html)
 

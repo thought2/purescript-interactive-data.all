@@ -5,7 +5,6 @@ module InteractiveData.App.UI.Layout
 
 import InteractiveData.Core.Prelude
 
-import InteractiveData.Core (class IDHtml)
 import Chameleon as VD
 import Chameleon.HTML.Elements as VDE
 
@@ -44,6 +43,7 @@ viewLayout { viewHeader, viewSidebar, viewBody, viewFooter } = withCtx \ctx ->
             , "flex-direction: column"
             , "height: 100%"
             , "font-family: 'Signika Negative'"
+            , "background-color: white"
             ]
       , header: styleNode VD.div
           [ "min-height: 70px"
@@ -58,11 +58,17 @@ viewLayout { viewHeader, viewSidebar, viewBody, viewFooter } = withCtx \ctx ->
           , "height: 100%"
           ]
       , sidebar: styleNode VD.div
-          [ "border-right: 1px solid #E0E0E0"
-          , if showSidebar then "width: 250px"
-            else "width: 0px"
-          , "transition: width 100ms ease-in-out"
-          ]
+          $
+            ( if showSidebar then
+                [ "width: 250px"
+                , "border-right: 1px solid #E0E0E0"
+                ]
+              else
+                [ "width: 0px" ]
+            )
+          /\
+            [ "transition: width 100ms ease-in-out"
+            ]
       , body: styleNode VD.div
           [ "width: 100%"
           , "height: 100%"

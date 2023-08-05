@@ -5,7 +5,6 @@ module InteractiveData.App.UI.Body
 
 import InteractiveData.Core.Prelude
 
-import InteractiveData.Core (class IDHtml)
 import Chameleon as VD
 
 type ViewBodyCfg (html :: Type -> Type) msg =
@@ -20,6 +19,7 @@ viewBody { viewContent } =
       , content: styleNode VD.div
           [ "padding: 10px"
           , "padding-left: 20px"
+          , "max-width: 600px"
           ]
       }
   in

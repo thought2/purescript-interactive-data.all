@@ -4,14 +4,10 @@ module InteractiveData.App.UI.Breadcrumbs
 
 import InteractiveData.Core.Prelude
 
+import Chameleon as VD
 import Data.Array (intersperse)
 import Data.Array as Array
-import DataMVC.Types (DataPathSegment)
-import InteractiveData.App.UI.Icons as UI.Icons
-import InteractiveData.Core (class IDHtml)
-import InteractiveData.Core.Types.Common (PathInContext)
-import Chameleon as VD
-import Chameleon.Styled (styleNode)
+import InteractiveData.App.UI.Assets as UI.Assets
 
 viewBreadcrumbs
   :: forall html msg
@@ -28,6 +24,11 @@ viewBreadcrumbs { dataPath, viewDataLabel, isAbsolute } =
       { root: styleNode VD.div
           [ "display: flex"
           , "align-items: center"
+          ]
+      , iconArrow: styleNode VD.div
+          [ "height: 24px"
+          , "width: 14px"
+          , "scale: 0.3"
           ]
       }
 
@@ -49,7 +50,13 @@ viewBreadcrumbs { dataPath, viewDataLabel, isAbsolute } =
   in
     el.root []
       ( allSegments
-          # intersperse (VD.div_ [ UI.Icons.breadCrumb ])
+          # intersperse
+              ( VD.div_
+                  [ el.iconArrow
+                      []
+                      [ UI.Assets.viewChevronRight ]
+                  ]
+              )
       )
 
 initsWithLast :: forall a. Array a -> Array (Array a /\ a)

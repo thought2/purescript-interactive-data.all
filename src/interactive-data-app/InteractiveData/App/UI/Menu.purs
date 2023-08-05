@@ -15,11 +15,9 @@ import Data.Array as Array
 import Data.Map (Map)
 import Data.Map as Map
 import Data.Tuple (fst)
-import DataMVC.Types (DataPath, DataPathSegment)
 import InteractiveData.App.UI.Assets as UI.Assets
 import InteractiveData.App.UI.DataLabel (mkTitleGoto, viewDataLabel)
 import InteractiveData.App.UI.Types.SumTree (SumTree(..), treeIsLeaf)
-import InteractiveData.Core (class IDHtml)
 import InteractiveData.Core.Types.DataPathExtra (dataPathToStrings)
 import InteractiveData.Core.Types.DataTree (TreeMeta)
 import Chameleon as VD
@@ -143,7 +141,7 @@ viewTree
   => ViewTreeCfg html msg
   -> ViewTreeOpts
   -> html msg
-viewTree cfg@{ pathIsExpanded, viewRow, viewLabel } { path, tree } =
+viewTree cfg { path, tree } =
   let
     SumTree { children } = tree
     el =
@@ -160,17 +158,17 @@ viewTree cfg@{ pathIsExpanded, viewRow, viewLabel } { path, tree } =
           map \({ key, deepSingletons, tree: tree' }) ->
             let
               newPath = path <> [ key ] <> map fst deepSingletons
-              isExpanded = pathIsExpanded newPath
+              isExpanded = cfg.pathIsExpanded newPath
               isLeaf = treeIsLeaf tree'
               SumTree { meta: meta } = tree'
 
             in
               el.item []
-                [ viewRow
+                [ cfg.viewRow
                     { path: newPath
                     , isExpanded
                     , isLeaf
-                    , viewLabel: viewLabel { path, label: [ key /\ meta ] <> deepSingletons }
+                    , viewLabel: cfg.viewLabel { path, label: [ key /\ meta ] <> deepSingletons }
                     , meta
                     }
                 , if isExpanded then
@@ -201,7 +199,7 @@ viewRow
   => ViewRowCfg msg
   -> ViewRowOpts html msg
   -> html msg
-viewRow { onSetExpanded } { viewLabel, path, isExpanded, isLeaf } =
+viewRow { onSetExpanded } opts@{ path, isExpanded, isLeaf } =
   let
     el =
       { row: styleNode VD.div
@@ -246,7 +244,7 @@ viewRow { onSetExpanded } { viewLabel, path, isExpanded, isLeaf } =
                 []
                 [ UI.Assets.viewChevronRight ]
           ]
-      , viewLabel
+      , opts.viewLabel
       ]
 
 -------------------------------------------------------------------------------

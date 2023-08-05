@@ -1,4 +1,6 @@
-module InteractiveData.Core.Types.DataAction where
+module InteractiveData.Core.Types.DataAction
+  ( DataAction(..)
+  ) where
 
 import Prelude
 
@@ -12,18 +14,12 @@ import InteractiveData.Core.Types.IDOutMsg (IDOutMsg)
 newtype DataAction msg = DataAction
   { label :: String
   , description :: String
-  , icon :: Icon
   , msg :: These msg IDOutMsg
   }
-
-data Icon = IconUnicode Char
 
 --------------------------------------------------------------------------------
 --- Instances
 --------------------------------------------------------------------------------
-
-derive instance Eq Icon
-derive instance Ord Icon
 
 derive instance Functor DataAction
 derive instance Eq msg => Eq (DataAction msg)
