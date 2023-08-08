@@ -7,11 +7,15 @@ module InteractiveData.App.WrapApp
 
 import Prelude
 
+import Chameleon as VD
+import Chameleon.Transformers.Ctx.Class (class Ctx, putCtx, withCtx)
+import Chameleon.Transformers.OutMsg.Class (runOutMsg)
 import Data.Array.NonEmpty as NEA
 import Data.Either (either)
 import Data.Maybe (Maybe(..))
 import Data.Newtype (un)
 import Data.These (These(..))
+import Data.Tuple.Nested (type (/\))
 import DataMVC.Types (DataPathSegment, DataResult, DataUI(..), DataUiInterface(..))
 import DataMVC.Types.DataUI (applyWrap, runDataUi)
 import InteractiveData.App.UI.Body as UI.Body
@@ -20,8 +24,10 @@ import InteractiveData.App.UI.Header as UI.Header
 import InteractiveData.App.UI.Layout as UI.Layout
 import InteractiveData.App.UI.Menu (MenuSelfMsg)
 import InteractiveData.App.UI.Menu as UI.Menu
-import InteractiveData.App.UI.Types.SumTree (SumTree, sumTree)
 import InteractiveData.App.UI.NotFound as UI.NotFound
+import InteractiveData.App.UI.SideBar as UI.SideBar
+import InteractiveData.App.UI.Types.SumTree (SumTree, sumTree)
+import InteractiveData.App.FastForward.Standalone (viewFastForwardStandalone)
 import InteractiveData.Core
   ( class IDHtml
   , DataTree(..)
@@ -35,9 +41,6 @@ import InteractiveData.Core
 import InteractiveData.Core.Types.DataPathExtra (dataPathFromStrings, dataPathToStrings)
 import InteractiveData.Core.Types.DataTree as DT
 import InteractiveData.Core.Types.IDSurface (runIdSurface)
-import Chameleon as VD
-import Chameleon.Transformers.Ctx.Class (class Ctx, putCtx, withCtx)
-import Chameleon.Transformers.OutMsg.Class (runOutMsg)
 
 --------------------------------------------------------------------------------
 --- Types
@@ -145,16 +148,34 @@ viewFound { global, selected } (AppState { showErrors, menu, showMenu }) =
 
     sidebar :: html (AppSelfMsg msg)
     sidebar =
-      map MenuMsg $
-        UI.Menu.viewMenu
-          { onSelectPath: SetSelectedPath
-          , tree: global.sumTree
-          }
-          menu
+      UI.SideBar.view
+        { menu: map MenuMsg $
+            UI.Menu.viewMenu
+              { onSelectPath: SetSelectedPath
+              , tree: global.sumTree
+              }
+              menu
+        }
+
+    trivialTrees :: Array (Array DataPathSegment /\ DataTree html msg)
+    trivialTrees = DT.digTrivialTrees
+      global.selectedDataPath
+      selected.dataTree
+
+    viewContent' :: html (AppSelfMsg msg)
+    viewContent' = withCtx \ctx ->
+      case ctx.viewMode of
+        Inline ->
+          viewContent
+        Standalone ->
+          map DataMsg $ viewFastForwardStandalone trivialTrees
+
+    viewContent :: html (AppSelfMsg msg)
+    viewContent = selected.dataTree # un DataTree # _.view # map DataMsg
 
     body :: html (AppSelfMsg msg)
     body = UI.Body.viewBody
-      { viewContent: selected.dataTree # un DataTree # _.view # map DataMsg }
+      { viewContent: viewContent' }
 
     footer :: html (AppSelfMsg msg)
     footer =

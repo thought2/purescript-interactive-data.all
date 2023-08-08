@@ -6,6 +6,8 @@ module InteractiveData.App.WrapData
 
 import InteractiveData.Core.Prelude
 
+import Chameleon as VD
+import Chameleon.Transformers.OutMsg.Class (fromOutHtml)
 import Data.Array as Array
 import Data.Array.NonEmpty (NonEmptyArray)
 import Data.Tuple (fst)
@@ -14,8 +16,6 @@ import InteractiveData.App.UI.Card as UI.Card
 import InteractiveData.App.UI.DataLabel as UI.DataLabel
 import InteractiveData.Core.Types.DataPathExtra (dataPathToStrings, segmentToString)
 import InteractiveData.Core.Types.IDSurface (runIdSurface)
-import Chameleon as VD
-import Chameleon.Transformers.OutMsg.Class (fromOutHtml)
 
 --------------------------------------------------------------------------------
 --- Types
@@ -126,23 +126,41 @@ viewStandalone { viewContent, actions } =
         ]
 
 viewInline :: forall html msg. IDHtml html => ViewDataCfg html msg -> html msg
-viewInline { viewContent, typeName, actions } =
+viewInline { viewContent, typeName } =
   withCtx \ctx ->
     let
       el =
         { typeRow: styleNode VD.div
             [ "display: flex"
-            , "margin-bottom: 10px"
             , "align-items: center"
             , "justify-content: space-between"
+            , "height: 100%"
+            ]
+        , caption: styleNode VD.div
+            [ "display: flex"
+            , "align-items: center"
+            , "justify-content: space-between"
+            , "height: 100%"
             ]
         , typeName: styleNode VD.div
             [ "font-size: 13px"
             , "margin-right: 10px"
             , "font-weight: bold"
             ]
-        , actions: styleNode VD.div
-            [ "display: flex" ]
+        -- , actions: styleNode VD.div
+        --     [ "display: flex" ]
+        , root: styleNode VD.div
+            [ "height: 120px"
+            , "min-width: 120px"
+            ]
+        -- , bodyRoot: styleNode VD.div
+        --     [ "display: flex"
+        --     , "flex-direction: column"
+        --     , "gap: 10px"
+        --     ]
+        -- , content: styleNode VD.div
+        --     [ "overflow: auto"
+        --     ]
         }
 
       typeRow :: html msg
@@ -150,31 +168,28 @@ viewInline { viewContent, typeName, actions } =
         el.typeRow []
           [ el.typeName []
               [ VD.text typeName ]
-          , el.actions []
-              ( map
-                  (\dataAction -> viewActionButton { dataAction })
-                  actions
-              )
           ]
 
     in
-      UI.Card.viewCard
-        { viewBody: VD.div []
-            [ typeRow
-            , viewContent
-            ]
-        }
-        UI.Card.defaultViewCardOpt
-          { viewCaption = Just
-              $ fromOutHtml
-              $ UI.DataLabel.viewDataLabel
-                  { dataPath: { before: [], path: ctx.path }
-                  , mkTitle: UI.DataLabel.mkTitleGoto
-                  }
-                  { onHit: Just (That $ GlobalSelectDataPath $ dataPathToStrings ctx.path)
-                  , size: UI.DataLabel.Large
-                  }
-          }
+      el.root []
+        [ UI.Card.viewCard
+            { viewBody: viewContent
+            }
+            UI.Card.defaultViewCardOpt
+              { viewCaption = Just
+                  $ fromOutHtml
+                  $ el.caption []
+                      [ UI.DataLabel.viewDataLabel
+                          { dataPath: { before: [], path: ctx.path }
+                          , mkTitle: UI.DataLabel.mkTitleGoto
+                          }
+                          { onHit: Just (That $ GlobalSelectDataPath $ dataPathToStrings ctx.path)
+                          , size: UI.DataLabel.Large
+                          }
+                      ]
+              , viewSubCaption = Just typeRow
+              }
+        ]
 
 type ViewCfgStatic sta a =
   { name :: String
@@ -261,6 +276,7 @@ type ViewDataTreeCfg html msg sta a =
   , extract ::
       sta -> DataResult a
   , typeName :: String
+  , path :: DataPath
   }
 
 viewDataTree
@@ -271,25 +287,30 @@ viewDataTree
   -> DataTree html (WrapMsg msg)
 viewDataTree { viewInner, viewHtml, extract, typeName } state@(WrapState { childState }) =
   let
-    (DataTree { actions, children }) = viewInner childState
+    DataTree { actions, children } = viewInner childState
 
     extractResult :: DataResult a
     extractResult = extract childState
 
+    -- Important!
+    -- If meta is not set here, the app is useless.
     meta :: TreeMeta
     meta =
       { errored: map (const unit) extractResult
       , typeName
       }
+
+    children' :: DataTreeChildren html (WrapMsg msg)
+    children' = map ChildMsg $ children
+
   in
     DataTree
-      { view:
-          viewHtml
-            { actions
-            , viewInner: viewInner >>> un DataTree >>> _.view
-            }
-            state
-      , children: map ChildMsg $ children
+      { view: viewHtml
+          { actions
+          , viewInner: viewInner >>> un DataTree >>> _.view
+          }
+          state
+      , children: children'
       , actions: map ChildMsg <$> actions
       , meta: Just meta
       }
@@ -301,12 +322,13 @@ dataUiInterface
   -> DataUiInterface (IDSurface html) (WrapMsg msg) (WrapState sta) a
 dataUiInterface (DataUiInterface { name, extract, init, update, view }) = DataUiInterface
   { name
-  , view: \state -> IDSurface \ctx ->
+  , view: \state -> IDSurface \(ctx :: IDSurfaceCtx) ->
       viewDataTree
         { viewHtml: dataWrapperView { name, extract }
         , viewInner: view >>> runIdSurface ctx
         , extract
         , typeName: name
+        , path: ctx.path
         }
         state
   , extract: dataWrapperExtract extract
