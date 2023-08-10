@@ -1,28 +1,29 @@
 module InteractiveData.App.FastForward.Standalone
-  ( viewFastForwardStandalone
+  ( view
   ) where
 
 import InteractiveData.Core.Prelude
 
 import Chameleon as VD
-import Chameleon.Transformers.OutMsg.Class (fromOutHtml)
 import Data.Array as Array
 import Data.FunctorWithIndex (mapWithIndex)
-import InteractiveData.App.UI.DataLabel as UI.DataLabel
-import InteractiveData.Core.Types.DataPathExtra (dataPathToStrings)
 
-viewFastForwardStandalone
+view
   :: forall html msg
    . IDHtml html
   => Array (DataPath /\ DataTree html msg)
   -> html msg
-viewFastForwardStandalone items =
+view items =
   let
     el =
       { root: styleNode VD.div [ "" ]
       , item: styleNode VD.div
-          [ "margin-bottom: 20px"
-          ]
+          $
+            [ "margin-bottom: 20px"
+            ]
+          /\ declWith ":not(:last-child)"
+            [ "border-bottom: 1px solid #ccc"
+            ]
       }
 
     countItems = Array.length items
@@ -46,10 +47,11 @@ viewItem
   => { isLast :: Boolean, isFirst :: Boolean }
   -> DataPath /\ DataTree html msg
   -> html msg
-viewItem { isLast, isFirst } (path /\ tree) =
+viewItem { isLast } (path /\ tree) =
   let
     el =
-      { root: styleNode VD.div [ "margin-left: 20px" ]
+      { root: styleNode VD.div
+          $ [ "margin-left: 20px" ]
       }
 
     DataTree { view } = tree
@@ -57,14 +59,5 @@ viewItem { isLast, isFirst } (path /\ tree) =
   in
     withCtx \(ctx :: IDViewCtx) ->
       el.root []
-        [ if isFirst then VD.noHtml
-          else fromOutHtml
-            $ UI.DataLabel.viewDataLabel
-                { dataPath: { before: [], path }
-                , mkTitle: UI.DataLabel.mkTitleGoto
-                }
-                { onHit: Just (That $ GlobalSelectDataPath $ dataPathToStrings path)
-                , size: UI.DataLabel.Large
-                }
-        , withCtx \_ -> putCtx ctx { fastForward = isLast, path = path } $ view
+        [ withCtx \_ -> putCtx ctx { fastForward = isLast, path = path } $ view
         ]

@@ -14,6 +14,7 @@ import Data.Tuple (fst)
 import InteractiveData.App.UI.ActionButton (viewActionButton)
 import InteractiveData.App.UI.Card as UI.Card
 import InteractiveData.App.UI.DataLabel as UI.DataLabel
+import InteractiveData.App.UI.DataLabel as UIDataLabel
 import InteractiveData.Core.Types.DataPathExtra (dataPathToStrings, segmentToString)
 import InteractiveData.Core.Types.IDSurface (runIdSurface)
 
@@ -64,8 +65,8 @@ viewData cfg =
         viewStandalone cfg
 
 viewStandalone :: forall html msg. IDHtml html => ViewDataCfg html msg -> html msg
-viewStandalone { viewContent, actions } =
-  withCtx \ctx ->
+viewStandalone { viewContent, actions, typeName } =
+  withCtx \(ctx :: IDViewCtx) ->
     let
       el =
         { data_: styleNode VD.div
@@ -103,9 +104,12 @@ viewStandalone { viewContent, actions } =
               [ "display: flex"
               , "margin-bottom: 10px"
               , "align-items: center"
-              , "justify-content: right"
+              , "justify-content: space-between"
               ]
-
+        , typeName: styleNode VD.div
+            [ "font-size: 20px"
+            , "grid-area: b"
+            ]
         }
 
     in
@@ -113,7 +117,8 @@ viewStandalone { viewContent, actions } =
         []
         [ el.item []
             [ el.subRow []
-                [ el.actions []
+                [ el.typeName [] [ VD.text typeName ]
+                , el.actions []
                     ( map
                         (\dataAction -> viewActionButton { dataAction })
                         actions
@@ -150,8 +155,9 @@ viewInline { viewContent, typeName } =
         -- , actions: styleNode VD.div
         --     [ "display: flex" ]
         , root: styleNode VD.div
-            [ "height: 120px"
+            [ "min-height: 120px"
             , "min-width: 120px"
+            , "display: grid"
             ]
         -- , bodyRoot: styleNode VD.div
         --     [ "display: flex"
@@ -179,7 +185,7 @@ viewInline { viewContent, typeName } =
               { viewCaption = Just
                   $ fromOutHtml
                   $ el.caption []
-                      [ UI.DataLabel.viewDataLabel
+                      [ UIDataLabel.view
                           { dataPath: { before: [], path: ctx.path }
                           , mkTitle: UI.DataLabel.mkTitleGoto
                           }

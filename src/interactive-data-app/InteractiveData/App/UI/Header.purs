@@ -5,11 +5,12 @@ module InteractiveData.App.UI.Header
 
 import InteractiveData.Core.Prelude
 
+import Chameleon as VD
 import InteractiveData.App.UI.Assets as UI.Assets
 import InteractiveData.App.UI.Breadcrumbs as UI.Breadcrumbs
 import InteractiveData.App.UI.DataLabel as UI.DataLabel
+import InteractiveData.App.UI.DataLabel as UIDataLabel
 import InteractiveData.Core.Types.Common (unPathInContext)
-import Chameleon as VD
 
 type ViewHeaderCfg msg =
   { dataPath :: Array DataPathSegment
@@ -35,7 +36,7 @@ viewHeader { dataPath, typeName, onSelectPath, showMenu, onSetShowMenu } =
                 path :: Array DataPathSegment
                 path = unPathInContext dataPath'
               in
-                UI.DataLabel.viewDataLabel
+                UIDataLabel.view
                   { dataPath: dataPath'
                   , mkTitle: UI.DataLabel.mkTitleGoto
                   }
@@ -59,7 +60,7 @@ viewHeaderRoot
      , right :: html msg
      }
   -> html msg
-viewHeaderRoot { viewBreadcrumbs, viewTypeName: viewTypeName', right } =
+viewHeaderRoot { viewBreadcrumbs, right } =
   let
     el =
       { header: styleNode VD.div
@@ -73,10 +74,6 @@ viewHeaderRoot { viewBreadcrumbs, viewTypeName: viewTypeName', right } =
           , "align-items: center"
           , "grid-template-areas: 'a c' 'b d'"
           ]
-      , typeName: styleNode VD.div
-          [ "font-size: 20px"
-          , "grid-area: b"
-          ]
       , breadcrumbs: styleNode VD.div
           [ "width: 100%"
           , "grid-area: a"
@@ -89,8 +86,6 @@ viewHeaderRoot { viewBreadcrumbs, viewTypeName: viewTypeName', right } =
       [ el.breadcrumbs []
           [ viewBreadcrumbs
           ]
-      , el.typeName []
-          [ viewTypeName' ]
       , el.right []
           [ right ]
       ]

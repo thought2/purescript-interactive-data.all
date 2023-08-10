@@ -27,3 +27,13 @@ import InteractiveData.DataUIs.Record
   , record_
   ) as Export
 
+import InteractiveData.DataUIs.Variant
+  ( VariantMsg
+  , VariantState
+  , variant_
+  ) as Export
+
+import InteractiveData.DataUIs.Newtype
+  ( newtype_
+  ) as Export
+
