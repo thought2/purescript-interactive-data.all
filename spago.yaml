@@ -37,9 +37,7 @@ package:
       githubRepo: purescript-interactive-data.all
 workspace:
   extra_packages:
-    chameleon-styled:
-      git: https://github.com/thought2/purescript-chameleon-styled.git
-      ref: v1.0.0
+    chameleon-styled: 1.0.0
   package_set:
     registry: 34.0.0
   build_opts:
