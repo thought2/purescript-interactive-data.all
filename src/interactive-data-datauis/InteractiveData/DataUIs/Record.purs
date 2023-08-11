@@ -8,7 +8,7 @@ module InteractiveData.DataUIs.Record
 
 import Prelude
 
-import Chameleon as VD
+import Chameleon as C
 import Chameleon.Styled (styleNode)
 import Chameleon.Transformers.Ctx.Class (putCtx, withCtx)
 import Data.Array (mapWithIndex)
@@ -18,7 +18,7 @@ import Data.Tuple.Nested (type (/\), (/\))
 import DataMVC.Record.DataUI (class DataUiRecord)
 import DataMVC.Record.DataUI as R
 import DataMVC.Types (DataPathSegment(..), DataPathSegmentField(..), DataUI)
-import InteractiveData.App.FastForward.Inline (viewFastForwardInline)
+import InteractiveData.App.FastForward.Inline as FastForwardInline
 import InteractiveData.Core (class IDHtml, DataTree(..), DataTreeChildren(..), IDSurface(..), ViewMode(..))
 import InteractiveData.Core.Types.DataTree as DT
 import InteractiveData.Core.Types.IDSurface (runIdSurface)
@@ -38,12 +38,12 @@ view fields =
   withCtx \ctx ->
     let
       el =
-        { fieldsCountInfo: styleNode VD.div
+        { fieldsCountInfo: styleNode C.div
             [ "font-style: italic"
             , "font-size: 10px"
             , "color: #999"
             ]
-        , root: styleNode VD.div
+        , root: styleNode C.div
             [ "display: flex"
             , "gap: 20px"
             , "flex-direction: column"
@@ -55,18 +55,17 @@ view fields =
         0 -> "no fields"
         1 -> "1 field"
         n -> show n <> " fields"
-
     in
       el.root []
         if Array.null fields then
           [ el.fieldsCountInfo []
-              [ VD.text countFieldsText ]
+              [ C.text countFieldsText ]
           ]
         else
           case ctx.viewMode of
             Inline ->
               [ el.fieldsCountInfo []
-                  [ VD.text countFieldsText ]
+                  [ C.text countFieldsText ]
               ]
             Standalone | not ctx.fastForward -> []
             Standalone ->
@@ -83,7 +82,7 @@ viewRow _ (seg /\ tree) = withCtx \ctx ->
     newPath = ctx.path <> [ SegField seg ]
 
     el =
-      { root: VD.div
+      { root: C.div
       }
 
     trivialTrees :: Array (Array DataPathSegment /\ DataTree html msg)
@@ -93,7 +92,7 @@ viewRow _ (seg /\ tree) = withCtx \ctx ->
   in
     el.root []
       [ putCtx ctx { path = newPath, viewMode = Inline } $
-          viewFastForwardInline trivialTrees
+          FastForwardInline.view trivialTrees
       ]
 
 mkSurface

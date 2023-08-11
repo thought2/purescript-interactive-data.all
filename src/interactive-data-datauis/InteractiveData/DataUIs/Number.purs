@@ -9,7 +9,7 @@ module InteractiveData.DataUIs.Number
 
 import InteractiveData.Core.Prelude
 
-import Chameleon as VD
+import Chameleon as C
 import InteractiveData.UI.NumberInput as UI.NumberInput
 import InteractiveData.UI.Slider as UI.Slider
 
@@ -63,20 +63,20 @@ update { min, max } msg _ =
 --- View
 -------------------------------------------------------------------------------
 
-type CfgNumberView =
+type CfgView =
   { min :: Number
   , max :: Number
   , step :: Number
   }
 
-view :: forall html. IDHtml html => CfgNumberView -> NumberState -> html NumberMsg
+view :: forall html. IDHtml html => CfgView -> NumberState -> html NumberMsg
 view
   { min, max, step }
   (NumberState value) =
   withCtx \_ ->
     let
       el =
-        { root: styleNode VD.div
+        { root: styleNode C.div
             [ "margin-top: 10px"
             , "margin-bottom: 5px"
             , "display: flex"
@@ -85,9 +85,9 @@ view
             , "justify-content: space-between"
             , "gap: 10px"
             ]
-        , slider: styleNode VD.div
+        , slider: styleNode C.div
             [ "flex: 3" ]
-        , input: styleNode VD.div
+        , input: styleNode C.div
             [ "flex: 1" ]
         }
 
@@ -163,7 +163,6 @@ number opt =
   let
     cfg :: CfgNumber
     cfg = getAllArgs defaultCfgNumber opt
-
   in
     DataUI \_ -> DataUiInterface
       { name: "Number"

@@ -4,7 +4,7 @@ module InteractiveData.App.FastForward.Standalone
 
 import InteractiveData.Core.Prelude
 
-import Chameleon as VD
+import Chameleon as C
 import Data.Array as Array
 import Data.FunctorWithIndex (mapWithIndex)
 
@@ -16,14 +16,12 @@ view
 view items =
   let
     el =
-      { root: styleNode VD.div [ "" ]
-      , item: styleNode VD.div
+      { root: C.div
+      , item: styleNode C.div
           $
-            [ "margin-bottom: 20px"
-            ]
+            [ "margin-bottom: 20px" ]
           /\ declWith ":not(:last-child)"
-            [ "border-bottom: 1px solid #ccc"
-            ]
+            [ "border-bottom: 1px solid #ccc" ]
       }
 
     countItems = Array.length items
@@ -50,7 +48,7 @@ viewItem
 viewItem { isLast } (path /\ tree) =
   let
     el =
-      { root: styleNode VD.div
+      { root: styleNode C.div
           $ [ "margin-left: 20px" ]
       }
 
@@ -59,5 +57,4 @@ viewItem { isLast } (path /\ tree) =
   in
     withCtx \(ctx :: IDViewCtx) ->
       el.root []
-        [ withCtx \_ -> putCtx ctx { fastForward = isLast, path = path } $ view
-        ]
+        [ withCtx \_ -> putCtx ctx { fastForward = isLast, path = path } $ view ]

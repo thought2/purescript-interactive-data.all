@@ -1,44 +1,44 @@
 module InteractiveData.App.UI.Card
-  ( ViewCardCfg
-  , ViewCardOpt
-  , defaultViewCardOpt
-  , viewCard
+  ( ViewCfg
+  , ViewOpt
+  , defaultViewOpt
+  , view
   ) where
 
 import InteractiveData.Core.Prelude
 
-import Chameleon as VD
+import Chameleon as C
 
-type ViewCardCfg (html :: Type -> Type) msg =
+type ViewCfg (html :: Type -> Type) msg =
   { viewBody :: html msg
   }
 
-type ViewCardOpt (html :: Type -> Type) msg =
+type ViewOpt (html :: Type -> Type) msg =
   { viewCaption :: Maybe (html msg)
   , viewSubCaption :: Maybe (html msg)
   , backgroundColor :: String
   , borderColor :: String
   }
 
-defaultViewCardOpt :: forall html msg. ViewCardOpt html msg
-defaultViewCardOpt =
+defaultViewOpt :: forall html msg. ViewOpt html msg
+defaultViewOpt =
   { viewCaption: Nothing
   , viewSubCaption: Nothing
   , backgroundColor: "#f8f8f8"
   , borderColor: "#ddd"
   }
 
-viewCard
+view
   :: forall html msg
    . IDHtml html
-  => ViewCardCfg html msg
-  -> ViewCardOpt html msg
+  => ViewCfg html msg
+  -> ViewOpt html msg
   -> html msg
-viewCard { viewBody } { viewCaption, viewSubCaption, backgroundColor, borderColor } =
+view { viewBody } { viewCaption, viewSubCaption, backgroundColor, borderColor } =
   let
     el =
 
-      { card: styleNode VD.div
+      { card: styleNode C.div
           [ "background-color: " <> backgroundColor
           , "position: relative"
           , "border-radius: 5px"
@@ -49,18 +49,18 @@ viewCard { viewBody } { viewCaption, viewSubCaption, backgroundColor, borderColo
           , "flex-direction: column"
           , "box-sizing: border-box"
           ]
-      , caption: styleNode VD.div
+      , caption: styleNode C.div
           [ "border-bottom: 1px solid " <> borderColor
           , "padding: 5px"
           , "height: 35px"
           , "box-sizing: border-box"
           ]
-      , subCaption: styleNode VD.div
+      , subCaption: styleNode C.div
           [ "padding: 5px"
           , "height: 25px"
           , "box-sizing: border-box"
           ]
-      , body: styleNode VD.div
+      , body: styleNode C.div
           [ "padding-left: 5px"
           , "padding-right: 5px"
           , "margin-top: 10px"
@@ -73,12 +73,12 @@ viewCard { viewBody } { viewCaption, viewSubCaption, backgroundColor, borderColo
           Just viewCaption' ->
             el.caption [] [ viewCaption' ]
           Nothing ->
-            VD.noHtml
+            C.noHtml
       , case viewSubCaption of
           Just viewSubCaption' ->
             el.subCaption [] [ viewSubCaption' ]
           Nothing ->
-            VD.noHtml
+            C.noHtml
       , el.body []
           [ viewBody ]
       ]

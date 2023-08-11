@@ -1,4 +1,7 @@
-module InteractiveData.Core.Types.Common where
+module InteractiveData.Core.Types.Common
+  ( PathInContext
+  , unPathInContext
+  ) where
 
 import Prelude
 

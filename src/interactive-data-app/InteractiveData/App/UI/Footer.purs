@@ -1,29 +1,28 @@
 module InteractiveData.App.UI.Footer
-  ( ViewFooterCfg
-  , viewFooter
+  ( ViewCfg
+  , view
   ) where
 
 import InteractiveData.Core.Prelude
 
-import Chameleon as VD
+import Chameleon as C
 import Data.Array as Array
 import DataMVC.Types.DataError (DataError(..))
-import InteractiveData.App.UI.Assets as UI.Assets
-import InteractiveData.App.UI.Breadcrumbs as UI.Breadcrumbs
-import InteractiveData.App.UI.Card as UI.Card
-import InteractiveData.App.UI.DataLabel as UI.DataLabel
+import InteractiveData.App.UI.Assets as UIAssets
+import InteractiveData.App.UI.Breadcrumbs as UIBreadcrumbs
+import InteractiveData.App.UI.Card as UICard
 import InteractiveData.App.UI.DataLabel as UIDataLabel
 import InteractiveData.Core.Types.Common (unPathInContext)
 
-type ViewFooterCfg msg =
+type ViewCfg msg =
   { errors :: Array DataError
   , onSelectPath :: Array DataPathSegment -> msg
   , isExpanded :: Boolean
   , onChangeIsExpanded :: Boolean -> msg
   }
 
-viewFooter :: forall html msg. IDHtml html => ViewFooterCfg msg -> html msg
-viewFooter { errors, onSelectPath, isExpanded, onChangeIsExpanded } =
+view :: forall html msg. IDHtml html => ViewCfg msg -> html msg
+view { errors, onSelectPath, isExpanded, onChangeIsExpanded } =
   footerRoot
     { errors
     , isExpanded
@@ -31,7 +30,7 @@ viewFooter { errors, onSelectPath, isExpanded, onChangeIsExpanded } =
     , viewError:
         footerViewError
           { viewDataPath: \relDataPath ->
-              UI.Breadcrumbs.viewBreadcrumbs
+              UIBreadcrumbs.view
                 { dataPath:
                     { before: []
                     , path: relDataPath
@@ -43,7 +42,7 @@ viewFooter { errors, onSelectPath, isExpanded, onChangeIsExpanded } =
                     in
                       UIDataLabel.view
                         { dataPath: pathInCtx
-                        , mkTitle: UI.DataLabel.mkTitleGoto
+                        , mkTitle: UIDataLabel.mkTitleGoto
                         }
                         { onHit: Just $ onSelectPath path
                         , isSelected: true
@@ -66,14 +65,14 @@ footerRoot
 footerRoot { errors, viewError, isExpanded, onChangeIsExpanded } =
   let
     el =
-      { footerRoot: styleNode VD.div
+      { footerRoot: styleNode C.div
           [ "display: flex"
           , "flex-direction: column"
           , "align-items: stretch"
           , "background-color: #ffede3"
           , "border-top: 1px solid #eee"
           ]
-      , errors: styleNode VD.div
+      , errors: styleNode C.div
           $
             [ "overflow-y: auto"
             , "flex-grow: 1"
@@ -91,13 +90,13 @@ footerRoot { errors, viewError, isExpanded, onChangeIsExpanded } =
             else
               [ "max-height: 0px"
               ]
-      , headline: styleNode VD.div
+      , headline: styleNode C.div
           [ "display: flex"
           , "flex-direction: row"
           , "justify-content: space-between"
           , "padding: 5px"
           ]
-      , expandIcon: styleNode VD.div
+      , expandIcon: styleNode C.div
           [ "cursor: pointer"
           , "width: 20px"
           ]
@@ -114,11 +113,11 @@ footerRoot { errors, viewError, isExpanded, onChangeIsExpanded } =
   in
     el.footerRoot []
       [ el.headline []
-          [ VD.text textCountErrors
+          [ C.text textCountErrors
           , el.expandIcon
-              [ VD.onClick $ onChangeIsExpanded (not isExpanded) ]
-              [ if isExpanded then UI.Assets.viewExpandDown
-                else UI.Assets.viewExpandUp
+              [ C.onClick $ onChangeIsExpanded (not isExpanded) ]
+              [ if isExpanded then UIAssets.viewExpandDown
+                else UIAssets.viewExpandUp
               ]
           ]
       , el.errors []
@@ -133,11 +132,11 @@ footerViewError
   -> DataError
   -> html msg
 footerViewError { viewDataPath } (DataError dataPath errorCase_) = withCtx \_ ->
-  UI.Card.viewCard
+  UICard.view
     { viewBody:
-        VD.text $ printErrorCase errorCase_
+        C.text $ printErrorCase errorCase_
     }
-    UI.Card.defaultViewCardOpt
+    UICard.defaultViewOpt
       { viewCaption =
           if Array.null dataPath then Nothing
           else Just $

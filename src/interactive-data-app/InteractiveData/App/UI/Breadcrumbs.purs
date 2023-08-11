@@ -1,31 +1,35 @@
 module InteractiveData.App.UI.Breadcrumbs
-  ( viewBreadcrumbs
+  ( ViewCfg
+  , view
   ) where
 
 import InteractiveData.Core.Prelude
 
-import Chameleon as VD
+import Chameleon as C
 import Data.Array (intersperse)
 import Data.Array as Array
 import InteractiveData.App.UI.Assets as UI.Assets
 
-viewBreadcrumbs
+type ViewCfg (html :: Type -> Type) msg =
+  { viewDataLabel :: PathInContext DataPathSegment -> html msg
+  , dataPath :: PathInContext DataPathSegment
+  , isAbsolute :: Boolean
+  }
+
+view
   :: forall html msg
    . IDHtml html
-  => { viewDataLabel :: PathInContext DataPathSegment -> html msg
-     , dataPath :: PathInContext DataPathSegment
-     , isAbsolute :: Boolean
-     }
+  => ViewCfg html msg
   -> html msg
-viewBreadcrumbs { dataPath, viewDataLabel, isAbsolute } =
+view { dataPath, viewDataLabel, isAbsolute } =
   let
 
     el =
-      { root: styleNode VD.div
+      { root: styleNode C.div
           [ "display: flex"
           , "align-items: center"
           ]
-      , iconArrow: styleNode VD.div
+      , iconArrow: styleNode C.div
           [ "height: 24px"
           , "width: 14px"
           , "scale: 0.3"
@@ -51,9 +55,8 @@ viewBreadcrumbs { dataPath, viewDataLabel, isAbsolute } =
     el.root []
       ( allSegments
           # intersperse
-              ( VD.div_
-                  [ el.iconArrow
-                      []
+              ( C.div_
+                  [ el.iconArrow []
                       [ UI.Assets.viewChevronRight ]
                   ]
               )
