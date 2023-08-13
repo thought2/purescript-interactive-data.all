@@ -2,8 +2,8 @@ package:
   dependencies:
     - arrays: ">=7.2.1 <8.0.0"
     - bifunctors: ">=6.0.0 <7.0.0"
-    - chameleon: "*"
-    - chameleon-styled: "*"
+    - chameleon: ">=1.0.0 <2.0.0"
+    - chameleon-styled: ">=2.0.0 <3.0.0"
     - chameleon-transformers: ">=0.1.0 <0.2.0"
     - convertable-options: ">=1.0.0 <2.0.0"
     - data-mvc: ">=0.0.2 <0.0.3"
