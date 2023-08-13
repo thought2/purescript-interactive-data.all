@@ -16,6 +16,11 @@ import InteractiveData.DataUIs
   , int
   , int_
 
+  , BooleanMsg
+  , BooleanState
+  , boolean
+  , boolean_
+
   , RecordMsg
   , RecordState
   , record
@@ -26,7 +31,17 @@ import InteractiveData.DataUIs
   , variant
   , variant_
 
+  , generic
+  , class GenericDataUI
+  , Product
+  , type (~)
+  , (~)
+
   , newtype_
+
+  , maybe_
+  , either_
+  , tuple_
   ) as Export
 
 import InteractiveData.Run

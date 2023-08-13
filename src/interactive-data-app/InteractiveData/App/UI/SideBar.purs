@@ -12,7 +12,7 @@ type ViewCfg :: (Type -> Type) -> Type -> Type
 type ViewCfg html msg = { menu :: html msg }
 
 view :: forall html msg. IDHtml html => ViewCfg html msg -> html msg
-view { menu } =
+view { menu } = withCtx \{ showLogo } ->
   let
     el =
       { root: styleNode C.div
@@ -34,7 +34,7 @@ view { menu } =
                 align-items: center;
                 gap: 10px;
                 stroke:#dfdfdf;
-                margin-bottom: 10px;
+                margin-bottom: 15px;
               """
           , declWith ":hover"
               """
@@ -57,18 +57,16 @@ view { menu } =
           , declWith ":active" [ "text-decoration : none" ]
           ]
       }
-
-    showBranding = false
   in
     el.root []
       [ menu
-      , if showBranding then
+      , if showLogo then
           el.link [ C.href "https://github.com/thought2/purescript-interactive-data" ]
             [ el.poweredBy []
                 [ el.logo []
                     [ UI.Assets.viewLogo ]
                 , C.div []
-                    [ C.span_ [ C.text "powered by " ]
+                    [ C.span_ [ C.text "built with " ]
                     , C.span []
                         [ C.text "interactive-data" ]
                     ]

@@ -21,6 +21,13 @@ import InteractiveData.DataUIs.Int
   , int_
   ) as Export
 
+import InteractiveData.DataUIs.Boolean
+  ( BooleanMsg
+  , BooleanState
+  , boolean
+  , boolean_
+  ) as Export
+
 import InteractiveData.DataUIs.Record
   ( RecordMsg
   , RecordState
@@ -37,5 +44,19 @@ import InteractiveData.DataUIs.Variant
 
 import InteractiveData.DataUIs.Newtype
   ( newtype_
+  ) as Export
+
+import InteractiveData.DataUIs.Generic
+  ( generic
+  , class GenericDataUI
+  , Product
+  , type (~)
+  , (~)
+  ) as Export
+
+import InteractiveData.DataUIs.Common
+  ( maybe_
+  , either_
+  , tuple_
   ) as Export
 
