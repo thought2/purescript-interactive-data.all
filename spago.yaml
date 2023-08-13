@@ -46,6 +46,7 @@ workspace:
     chameleon-react-basic: 1.0.0
     chameleon-halogen: 1.0.1
     chameleon-styled: 2.0.0
+    chameleon-transformers: 1.0.0
 
   package_set:
     registry: 34.0.0
