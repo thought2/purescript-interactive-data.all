@@ -42,18 +42,11 @@ package:
       githubRepo: purescript-interactive-data.all
 workspace:
   extra_packages:
-    chameleon:
-      git: https://github.com/thought2/purescript-chameleon.git
-      ref: v1.0.0
-    chameleon-react-basic:
-      git: https://github.com/thought2/purescript-chameleon-react-basic.git
-      ref: v1.0.0
-    chameleon-halogen:
-      git: https://github.com/thought2/purescript-chameleon-halogen.git
-      ref: v1.0.1
-    chameleon-styled:
-      git: https://github.com/thought2/purescript-chameleon-styled.git
-      ref: v2.0.0
+    chameleon: 1.0.0
+    chameleon-react-basic: 1.0.0
+    chameleon-halogen: 1.0.1
+    chameleon-styled: 2.0.0
+
   package_set:
     registry: 34.0.0
   build_opts:
