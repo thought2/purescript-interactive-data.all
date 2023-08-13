@@ -1,6 +1,5 @@
 module InteractiveData.App.UI.Card
   ( ViewCfg
-  , ViewOpt
   , defaultViewOpt
   , view
   ) where
@@ -10,20 +9,20 @@ import InteractiveData.Core.Prelude
 import Chameleon as C
 
 type ViewCfg (html :: Type -> Type) msg =
-  { viewBody :: html msg
-  }
-
-type ViewOpt (html :: Type -> Type) msg =
   { viewCaption :: Maybe (html msg)
   , viewSubCaption :: Maybe (html msg)
+  , viewBody :: Maybe (html msg)
+  , viewFooter :: Maybe (html msg)
   , backgroundColor :: String
   , borderColor :: String
   }
 
-defaultViewOpt :: forall html msg. ViewOpt html msg
+defaultViewOpt :: forall html msg. ViewCfg html msg
 defaultViewOpt =
   { viewCaption: Nothing
   , viewSubCaption: Nothing
+  , viewBody: Nothing
+  , viewFooter: Nothing
   , backgroundColor: "#f8f8f8"
   , borderColor: "#ddd"
   }
@@ -32,9 +31,15 @@ view
   :: forall html msg
    . IDHtml html
   => ViewCfg html msg
-  -> ViewOpt html msg
   -> html msg
-view { viewBody } { viewCaption, viewSubCaption, backgroundColor, borderColor } =
+view
+  { viewCaption
+  , viewSubCaption
+  , viewBody
+  , viewFooter
+  , backgroundColor
+  , borderColor
+  } =
   let
     el =
 
@@ -57,28 +62,44 @@ view { viewBody } { viewCaption, viewSubCaption, backgroundColor, borderColor } 
           ]
       , subCaption: styleNode C.div
           [ "padding: 5px"
-          , "height: 25px"
+          , "height: 35px"
           , "box-sizing: border-box"
           ]
       , body: styleNode C.div
-          [ "padding-left: 5px"
-          , "padding-right: 5px"
+          [ "padding: 5px"
           , "margin-top: 10px"
           , "box-sizing: border-box"
+          ]
+      , footer: styleNode C.div
+          [ "border-top: 1px solid " <> borderColor
+          , "padding: 5px"
           ]
       }
   in
     el.card []
       [ case viewCaption of
           Just viewCaption' ->
-            el.caption [] [ viewCaption' ]
+            el.caption []
+              [ viewCaption' ]
           Nothing ->
             C.noHtml
       , case viewSubCaption of
           Just viewSubCaption' ->
-            el.subCaption [] [ viewSubCaption' ]
+            el.subCaption []
+              [ viewSubCaption' ]
           Nothing ->
             C.noHtml
-      , el.body []
-          [ viewBody ]
+      , case viewBody of
+          Just viewBody' ->
+            el.body []
+              [ viewBody' ]
+          Nothing ->
+            C.noHtml
+      , case viewFooter of
+          Just viewFooter' ->
+            el.footer []
+              [ viewFooter' ]
+          Nothing ->
+            C.noHtml
       ]
+

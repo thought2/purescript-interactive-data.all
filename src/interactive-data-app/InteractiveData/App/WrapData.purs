@@ -8,9 +8,12 @@ import InteractiveData.Core.Prelude
 
 import Chameleon as C
 import Chameleon.Transformers.OutMsg.Class (fromOutHtml)
+import Data.Array (mapMaybe)
 import Data.Array as Array
 import Data.Array.NonEmpty (NonEmptyArray)
+import Data.Array.NonEmpty as NEA
 import Data.Tuple (fst)
+import DataMVC.Types.DataError (DataError(..))
 import InteractiveData.App.UI.ActionButton as UIActionButton
 import InteractiveData.App.UI.Card as UICard
 import InteractiveData.App.UI.DataLabel as UIDataLabel
@@ -32,6 +35,7 @@ type ViewDataCfg (html :: Type -> Type) msg =
   , viewContent :: html msg
   , actions :: Array (DataAction msg)
   , error :: Either (NonEmptyArray DataError) Unit
+  , text :: Maybe String
   }
 
 --------------------------------------------------------------------------------
@@ -53,15 +57,6 @@ instance Show msg => Show (WrapMsg msg) where
 --------------------------------------------------------------------------------
 --- View
 --------------------------------------------------------------------------------
-
-viewData :: forall html msg. IDHtml html => ViewDataCfg html msg -> html msg
-viewData cfg =
-  withCtx \ctx ->
-    case ctx.viewMode of
-      Inline ->
-        viewInline cfg
-      Standalone ->
-        viewStandalone cfg
 
 viewStandalone :: forall html msg. IDHtml html => ViewDataCfg html msg -> html msg
 viewStandalone { viewContent, actions, typeName } =
@@ -110,7 +105,6 @@ viewStandalone { viewContent, actions, typeName } =
             , "grid-area: b"
             ]
         }
-
     in
       el.data_
         []
@@ -130,15 +124,19 @@ viewStandalone { viewContent, actions, typeName } =
         ]
 
 viewInline :: forall html msg. IDHtml html => ViewDataCfg html msg -> html msg
-viewInline { viewContent, typeName } =
+viewInline { viewContent, typeName, text, error } =
   withCtx \ctx ->
     let
       el =
         { typeRow: styleNode C.div
             [ "display: flex"
-            , "align-items: center"
-            , "justify-content: space-between"
+            , "flex-direction: column"
             , "height: 100%"
+            , "gap: 3px"
+            , "margin-bottom: 5px"
+            ]
+        , text: styleNode C.div
+            [ "font-size: 11px"
             ]
         , caption: styleNode C.div
             [ "display: flex"
@@ -152,24 +150,56 @@ viewInline { viewContent, typeName } =
             , "font-weight: bold"
             ]
         , root: styleNode C.div
-            [ "min-height: 120px"
+            [ "min-height: 130px"
             , "min-width: 120px"
             , "display: grid"
             ]
+        , content: styleNode C.div
+            [ ""
+            ]
+        , errors: styleNode C.div
+            [ "color: red"
+            , "display: flex"
+            , "flex-direction: column"
+            , "gap: 3px"
+            ]
+        , error: styleNode C.div
+            [ "font-size: 11px" ]
         }
+
+      filteredErrors :: Array DataErrorCase
+      filteredErrors =
+        error
+          # either NEA.toArray (const [])
+          # mapMaybe
+              ( \(DataError path errorCase) ->
+                  if predPath path then Just errorCase
+                  else Nothing
+              )
+
+      predPath :: DataPath -> Boolean
+      predPath dataPath = dataPath == []
+
+      showErrors :: Boolean
+      showErrors =
+        Array.length filteredErrors > 0
 
       typeRow :: html msg
       typeRow =
         el.typeRow []
           [ el.typeName []
               [ C.text typeName ]
+          , case text of
+              Just text' ->
+                el.text []
+                  [ C.text text' ]
+              Nothing ->
+                C.noHtml
           ]
 
     in
       el.root []
         [ UICard.view
-            { viewBody: viewContent
-            }
             UICard.defaultViewOpt
               { viewCaption = Just
                   $ fromOutHtml
@@ -183,6 +213,22 @@ viewInline { viewContent, typeName } =
                           }
                       ]
               , viewSubCaption = Just typeRow
+              , viewBody = Just $ C.div []
+                  [ el.content []
+                      [ viewContent ]
+                  ]
+              , viewFooter =
+                  if showErrors then
+                    Just $
+                      el.errors []
+                        ( filteredErrors
+                            # map \error' ->
+                                el.error []
+                                  [ C.text $ printErrorCase error' ]
+                        )
+                  else
+                    Nothing
+
               }
         ]
 
@@ -194,6 +240,7 @@ type ViewCfgStatic sta a =
 type ViewCfgDynamic html msg sta =
   { actions :: Array (DataAction msg)
   , viewInner :: sta -> html msg
+  , text :: Maybe String
   }
 
 view
@@ -203,7 +250,7 @@ view
   -> ViewCfgDynamic html msg sta
   -> WrapState sta
   -> html (WrapMsg msg)
-view cfgStatic cfgDynamic@{ viewInner } (WrapState { childState }) =
+view cfgStatic cfgDynamic@{ viewInner, text } (WrapState { childState }) =
   withCtx \(ctx :: IDViewCtx) ->
     let
       rootLabel :: String
@@ -215,14 +262,22 @@ view cfgStatic cfgDynamic@{ viewInner } (WrapState { childState }) =
       extractResult :: DataResult a
       extractResult = cfgStatic.extract childState
 
-    in
-      map ChildMsg $ viewData
+      cfg :: ViewDataCfg html msg
+      cfg =
         { label: label
         , typeName: cfgStatic.name
         , viewContent: viewInner childState
         , actions: cfgDynamic.actions
         , error: map (const unit) extractResult
+        , text: text
         }
+    in
+      map ChildMsg
+        case ctx.viewMode of
+          Inline ->
+            viewInline cfg
+          Standalone ->
+            viewStandalone cfg
 
 --------------------------------------------------------------------------------
 --- Update
@@ -282,7 +337,7 @@ viewDataTree
   -> DataTree html (WrapMsg msg)
 viewDataTree { viewInner, viewHtml, extract: extract', typeName } state@(WrapState { childState }) =
   let
-    DataTree { actions, children } = viewInner childState
+    DataTree { actions, children, text } = viewInner childState
 
     extractResult :: DataResult a
     extractResult = extract' childState
@@ -303,11 +358,13 @@ viewDataTree { viewInner, viewHtml, extract: extract', typeName } state@(WrapSta
       { view: viewHtml
           { actions
           , viewInner: viewInner >>> un DataTree >>> _.view
+          , text
           }
           state
       , children: children'
       , actions: map ChildMsg <$> actions
       , meta: Just meta
+      , text
       }
 
 dataUiInterface
@@ -319,7 +376,10 @@ dataUiInterface (DataUiInterface itf) = DataUiInterface
   { name: itf.name
   , view: \state -> IDSurface \(ctx :: IDSurfaceCtx) ->
       viewDataTree
-        { viewHtml: view { name: itf.name, extract: itf.extract }
+        { viewHtml: view
+            { name: itf.name
+            , extract: itf.extract
+            }
         , viewInner: itf.view >>> runIdSurface ctx
         , extract: itf.extract
         , typeName: itf.name
@@ -340,3 +400,12 @@ dataUiCtx
    . IDHtml html
   => DataUICtx (IDSurface html) WrapMsg WrapState
 dataUiCtx = DataUICtx { wrap: dataUiInterface }
+
+--------------------------------------------------------------------------------
+--- Util
+--------------------------------------------------------------------------------
+
+printErrorCase :: DataErrorCase -> String
+printErrorCase = case _ of
+  DataErrNotYetDefined -> "Value not yet defined"
+  DataErrMsg msg -> msg

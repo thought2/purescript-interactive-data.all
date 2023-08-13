@@ -1,7 +1,7 @@
 module InteractiveData.App.WrapApp
-  ( AppMsg
-  , AppState
-  , AppSelfMsg
+  ( AppMsg(..)
+  , AppState(..)
+  , AppSelfMsg(..)
   , wrapApp
   ) where
 
@@ -108,6 +108,7 @@ view view' state@(AppState { selectedPath }) =
       , actions: []
       , children: Fields []
       , meta: Nothing
+      , text: Nothing
       }
 
 viewNotFound

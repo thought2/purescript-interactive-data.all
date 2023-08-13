@@ -22,7 +22,8 @@ newtype IDSurface html msg =
   IDSurface (IDSurfaceCtx -> DataTree html msg)
 
 type IDSurfaceCtx =
-  { path :: DataPath }
+  { path :: DataPath
+  }
 
 --------------------------------------------------------------------------------
 --- Destructors
