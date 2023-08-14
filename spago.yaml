@@ -1,5 +1,6 @@
 package:
   dependencies:
+    - argonaut: ">=9.0.0 <10.0.0"
     - arrays: ">=7.2.1 <8.0.0"
     - bifunctors: ">=6.0.0 <7.0.0"
     - chameleon: ">=1.0.0 <2.0.0"
@@ -21,7 +22,7 @@ package:
     - mvc: ">=0.0.1 <0.0.2"
     - newtype: ">=5.0.0 <6.0.0"
     - numbers: ">=9.0.1 <10.0.0"
-    - ordered-collections: ">=3.0.0 <4.0.0"
+    - ordered-collections: ">=3.1.0 <4.0.0"
     - partial: ">=4.0.0 <5.0.0"
     - prelude: ">=6.0.1 <7.0.0"
     - record: ">=4.0.0 <5.0.0"
@@ -35,21 +36,15 @@ package:
     - variant: ">=8.0.0 <9.0.0"
   name: interactive-data
   publish:
-    version: 2.0.0
+    version: 2.1.0
     license: BSD-3-Clause
     location:
       githubOwner: thought2
       githubRepo: purescript-interactive-data.all
 workspace:
-  extra_packages:
-    chameleon: 1.0.0
-    chameleon-react-basic: 1.0.0
-    chameleon-halogen: 1.0.1
-    chameleon-styled: 2.0.0
-    chameleon-transformers: 1.0.0
-
+  extra_packages: {}
   package_set:
-    registry: 34.0.0
+    registry: 36.0.0
   build_opts:
     pedantic_packages: true
     persist_warnings: true
