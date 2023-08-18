@@ -58,8 +58,20 @@ import InteractiveData.Core
   , class IDHtml
   ) as Export
 
+import InteractiveData.Class
+  ( class IDDataUI
+  , dataUi
+  ) as Export
+
+import InteractiveData.Class.Partial
+  ( recordPartial_
+  , variantPartial_
+  , genericPartial_
+  ) as Export
+
 import InteractiveData.Entry
   ( toApp
+  , DataUI'
   ) as Export
 
 import DataMVC.Types
