@@ -38,8 +38,12 @@ extract (NumberState s) = Right s
 --- Init
 -------------------------------------------------------------------------------
 
-init :: Maybe Number -> NumberState
-init optStr = NumberState $ fromMaybe zero optStr
+init :: { initCfg :: Maybe Number } -> Maybe Number -> NumberState
+init { initCfg } initGlobal = case initCfg, initGlobal of
+  Just n, Nothing -> NumberState n
+  Nothing, Just n -> NumberState n
+  Nothing, Nothing -> NumberState zero
+  Just _, Just n -> NumberState n
 
 -------------------------------------------------------------------------------
 --- Update
@@ -145,6 +149,7 @@ type CfgNumber =
   , min :: Number
   , max :: Number
   , step :: Number
+  , init :: Maybe Number
   }
 
 defaultCfgNumber :: CfgNumber
@@ -153,6 +158,7 @@ defaultCfgNumber =
   , min: -100.0
   , max: 100.0
   , step: 1.0
+  , init: Nothing
   }
 
 number
@@ -178,7 +184,7 @@ number opt =
             }
       , extract
       , update: update (pick cfg)
-      , init
+      , init: init { initCfg: cfg.init }
       }
 
 number_

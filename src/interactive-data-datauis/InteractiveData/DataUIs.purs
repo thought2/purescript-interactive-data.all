@@ -3,8 +3,16 @@ module InteractiveData.DataUIs (module Export) where
 import InteractiveData.DataUIs.String
   ( StringMsg
   , StringState
+  , CfgString
   , string
   , string_
+  ) as Export
+
+import InteractiveData.DataUIs.Array
+  ( ArrayMsg
+  , ArrayState
+  , array
+  , array_
   ) as Export
 
 import InteractiveData.DataUIs.Number
@@ -56,8 +64,11 @@ import InteractiveData.DataUIs.Generic
 
 import InteractiveData.DataUIs.Common
   ( maybe_
+  , maybe
   , either_
+  , either
   , tuple_
+  , tuple
   ) as Export
 
 import InteractiveData.DataUIs.Json

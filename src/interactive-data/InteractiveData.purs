@@ -3,8 +3,14 @@ module InteractiveData (module Export) where
 import InteractiveData.DataUIs
   ( StringMsg
   , StringState
+  , CfgString
   , string
   , string_
+
+  , ArrayMsg
+  , ArrayState
+  , array
+  , array_
 
   , NumberMsg
   , NumberState
@@ -40,8 +46,11 @@ import InteractiveData.DataUIs
   , newtype_
 
   , maybe_
+  , maybe
   , either_
+  , either
   , tuple_
+  , tuple
 
   , JsonMsg
   , JsonState
@@ -65,6 +74,7 @@ import InteractiveData.Class
 
 import InteractiveData.Class.Partial
   ( recordPartial_
+  , recordPartial
   , variantPartial_
   , genericPartial_
   ) as Export
@@ -94,4 +104,11 @@ import DataMVC.Types.DataError
   , scopeError
   , scopeErrors
   , scopeOpt
+  ) as Export
+
+import InteractiveData.App
+  ( WrapMsg
+  , WrapState
+  , AppMsg
+  , AppState
   ) as Export
