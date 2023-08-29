@@ -38,8 +38,10 @@ import InteractiveData.DataUIs
   , variant_
 
   , generic
+  , generic_
   , class GenericDataUI
   , Product
+  , TypeName(..)
   , type (~)
   , (~)
 
@@ -47,14 +49,21 @@ import InteractiveData.DataUIs
 
   , maybe_
   , maybe
+  , mkMaybe
+  , mkMaybe_
   , either_
   , either
   , tuple_
   , tuple
+  , unit
+  , unit_
 
   , JsonMsg
   , JsonState
   , json
+
+  , TrivialCfg
+  , mkTrivialDataUi
   ) as Export
 
 import InteractiveData.Run
@@ -62,9 +71,18 @@ import InteractiveData.Run
   , getUi
   ) as Export
 
+import InteractiveData.Core.Types.IDHtmlT
+  ( IDHtmlT
+  ) as Export
+
 import InteractiveData.Core
   ( IDSurface
   , class IDHtml
+  , DataAction(..)
+  ) as Export
+
+import InteractiveData.Core.Classes.OptArgs
+  ( class OptArgs
   ) as Export
 
 import InteractiveData.Class
@@ -81,6 +99,7 @@ import InteractiveData.Class.Partial
 
 import InteractiveData.Entry
   ( toApp
+  , mkDataError
   , DataUI'
   ) as Export
 
@@ -112,3 +131,4 @@ import InteractiveData.App
   , AppMsg
   , AppState
   ) as Export
+

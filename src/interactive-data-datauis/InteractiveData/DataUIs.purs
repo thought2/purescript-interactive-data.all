@@ -56,23 +56,37 @@ import InteractiveData.DataUIs.Newtype
 
 import InteractiveData.DataUIs.Generic
   ( generic
+  , generic_
   , class GenericDataUI
   , Product
   , type (~)
   , (~)
   ) as Export
 
+import InteractiveData.DataUIs.Types
+  ( TypeName(..)
+  ) as Export
+
 import InteractiveData.DataUIs.Common
   ( maybe_
   , maybe
+  , mkMaybe
+  , mkMaybe_
   , either_
   , either
   , tuple_
   , tuple
+  , unit
+  , unit_
   ) as Export
 
 import InteractiveData.DataUIs.Json
   ( JsonMsg
   , JsonState
   , json
+  ) as Export
+
+import InteractiveData.DataUIs.Trivial
+  ( TrivialCfg
+  , mkTrivialDataUi
   ) as Export

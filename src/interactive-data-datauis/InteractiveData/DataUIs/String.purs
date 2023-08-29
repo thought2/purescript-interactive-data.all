@@ -10,6 +10,7 @@ module InteractiveData.DataUIs.String
 import InteractiveData.Core.Prelude
 
 import Chameleon as C
+import Data.Int as Int
 import Data.String as Str
 
 -------------------------------------------------------------------------------
@@ -55,14 +56,14 @@ update msg (StringState state) =
 -------------------------------------------------------------------------------
 
 type CfgView =
-  { multilineInline :: Boolean
-  , multilineStandalone :: Boolean
+  { multiline :: Boolean
   , maxLength :: Maybe Int
+  , rows :: Int
   }
 
 view :: forall html. IDHtml html => CfgView -> StringState -> html StringMsg
 view
-  { multilineInline, multilineStandalone, maxLength }
+  { multiline, maxLength, rows }
   (StringState state) =
   withCtx \ctx ->
     let
@@ -75,7 +76,6 @@ view
             ]
         , textarea: styleNode C.textarea
             [ "width: 100%"
-            , "height: 200px"
             , "font-family: 'Signika Negative'"
             , "border: 1px solid #ccc"
             , "border-radius: 3px"
@@ -91,6 +91,7 @@ view
         el.textarea
           [ C.onInput SetString
           , C.value state
+          , C.rows $ Int.toNumber rows
           , maybe C.noProp C.maxlength maxLength
           ]
           []
@@ -112,13 +113,13 @@ view
       case ctx.viewMode of
         Standalone ->
           el.root []
-            [ getLineInput multilineStandalone
+            [ getLineInput multiline
             , el.details []
                 [ C.text ("Length: " <> show (Str.length state)) ]
             ]
         Inline ->
           el.root []
-            [ getLineInput multilineInline
+            [ singleLineInput
             ]
 
 -------------------------------------------------------------------------------
@@ -145,8 +146,8 @@ actions =
 
 type CfgString msg =
   { text :: Maybe String
-  , multilineInline :: Boolean
-  , multilineStandalone :: Boolean
+  , multiline :: Boolean
+  , rows :: Int
   , actions :: Array (DataAction msg)
   , maxLength :: Maybe Int
   }
@@ -154,8 +155,8 @@ type CfgString msg =
 defaultCfgString :: CfgString StringMsg
 defaultCfgString =
   { text: Nothing
-  , multilineInline: false
-  , multilineStandalone: true
+  , multiline: false
+  , rows: 5
   , actions
   , maxLength: Nothing
   }

@@ -47,10 +47,10 @@ view { viewHeader, viewSidebar, viewBody, viewFooter } = withCtx \ctx ->
             , "background-color: white"
             ]
       , header: styleNode C.div
-          [ "min-height: 70px"
-          , "position: sticky"
+          [ "position: sticky"
           , "top: 0"
           , "z-index: 99"
+          , "height: 25px"
           ]
       , root: styleNode C.div
           [ "width: 100%"
@@ -73,7 +73,6 @@ view { viewHeader, viewSidebar, viewBody, viewFooter } = withCtx \ctx ->
       , body: styleNode C.div
           [ "width: 100%"
           , "height: 100%"
-          , "overflow: none"
           , "display: flex"
           , "flex-direction: column"
           ]

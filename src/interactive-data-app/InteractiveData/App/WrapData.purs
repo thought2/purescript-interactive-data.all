@@ -10,7 +10,6 @@ import Chameleon as C
 import Chameleon.Transformers.OutMsg.Class (fromOutHtml)
 import Data.Array (mapMaybe)
 import Data.Array as Array
-import Data.Array.NonEmpty (NonEmptyArray)
 import Data.Array.NonEmpty as NEA
 import Data.Tuple (fst)
 import InteractiveData.App.UI.ActionButton as UIActionButton
@@ -33,8 +32,8 @@ type ViewDataCfg (html :: Type -> Type) msg =
   , typeName :: String
   , viewContent :: html msg
   , actions :: Array (DataAction msg)
-  , error :: Either (NonEmptyArray DataError) Unit
   , text :: Maybe String
+  , filteredErrors :: Array DataErrorCase
   }
 
 --------------------------------------------------------------------------------
@@ -58,7 +57,7 @@ instance Show msg => Show (WrapMsg msg) where
 --------------------------------------------------------------------------------
 
 viewStandalone :: forall html msg. IDHtml html => ViewDataCfg html msg -> html msg
-viewStandalone { viewContent, actions, typeName, text } =
+viewStandalone { viewContent, actions, typeName, text, filteredErrors } =
   withCtx \(ctx :: IDViewCtx) ->
     let
       el =
@@ -109,9 +108,23 @@ viewStandalone { viewContent, actions, typeName, text } =
             ]
 
         , header: styleNode C.div
-            [ "margin-bottom: 35px"
+            [ "margin-bottom: 20px"
             ]
+        , errors: styleNode C.div
+            [ "color: red"
+            , "display: flex"
+            , "flex-direction: column"
+            , "gap: 3px"
+            , "margin-top: 10px"
+            ]
+        , error: styleNode C.div
+            [ "font-size: 11px" ]
         }
+
+      showErrors :: Boolean
+      showErrors =
+        Array.length filteredErrors > 0
+
     in
       el.data_
         []
@@ -134,10 +147,20 @@ viewStandalone { viewContent, actions, typeName, text } =
 
         , el.item [] <<< pure $ el.content []
             [ viewContent ]
+
+        , if showErrors then
+            el.errors []
+              ( filteredErrors
+                  # map \error' ->
+                      el.error []
+                        [ C.text $ printErrorCase error' ]
+              )
+          else
+            C.noHtml
         ]
 
 viewInline :: forall html msg. IDHtml html => ViewDataCfg html msg -> html msg
-viewInline { viewContent, typeName, text, error } =
+viewInline { viewContent, typeName, text, filteredErrors } =
   withCtx \ctx ->
     let
       el =
@@ -146,7 +169,6 @@ viewInline { viewContent, typeName, text, error } =
             , "flex-direction: column"
             , "height: 100%"
             , "gap: 3px"
-            , "margin-bottom: 5px"
             ]
         , text: styleNode C.div
             [ "font-size: 11px"
@@ -158,13 +180,11 @@ viewInline { viewContent, typeName, text, error } =
             , "height: 100%"
             ]
         , typeName: styleNode C.div
-            [ "font-size: 13px"
+            [ "font-size: 12px"
             , "margin-right: 10px"
-            , "font-weight: bold"
             ]
         , root: styleNode C.div
-            [ "min-height: 130px"
-            , "min-width: 120px"
+            [ "min-width: 120px"
             , "display: grid"
             ]
         , content: styleNode C.div
@@ -180,19 +200,6 @@ viewInline { viewContent, typeName, text, error } =
             [ "font-size: 11px" ]
         }
 
-      filteredErrors :: Array DataErrorCase
-      filteredErrors =
-        error
-          # either NEA.toArray (const [])
-          # mapMaybe
-              ( \(DataError path errorCase) ->
-                  if predPath path then Just errorCase
-                  else Nothing
-              )
-
-      predPath :: DataPath -> Boolean
-      predPath dataPath = dataPath == []
-
       showErrors :: Boolean
       showErrors =
         Array.length filteredErrors > 0
@@ -200,9 +207,7 @@ viewInline { viewContent, typeName, text, error } =
       typeRow :: html msg
       typeRow =
         el.typeRow []
-          [ el.typeName []
-              [ C.text typeName ]
-          , case text of
+          [ case text of
               Just text' ->
                 el.text []
                   [ C.text text' ]
@@ -224,6 +229,8 @@ viewInline { viewContent, typeName, text, error } =
                           { onHit: Just (That $ GlobalSelectDataPath $ dataPathToStrings ctx.path)
                           , size: UIDataLabel.Large
                           }
+                      , el.typeName []
+                          [ C.text typeName ]
                       ]
               , viewSubCaption = Just typeRow
               , viewBody = Just $ C.div []
@@ -275,15 +282,30 @@ view cfgStatic cfgDynamic@{ viewInner, text } (WrapState { childState }) =
       extractResult :: DataResult a
       extractResult = cfgStatic.extract childState
 
+      error = map (const unit) extractResult
+
       cfg :: ViewDataCfg html msg
       cfg =
         { label: label
         , typeName: cfgStatic.name
         , viewContent: viewInner childState
         , actions: cfgDynamic.actions
-        , error: map (const unit) extractResult
         , text: text
+        , filteredErrors
         }
+
+      predPath :: DataPath -> Boolean
+      predPath dataPath = dataPath == []
+
+      filteredErrors :: Array DataErrorCase
+      filteredErrors =
+        error
+          # either NEA.toArray (const [])
+          # mapMaybe
+              ( \(DataError path errorCase) ->
+                  if predPath path then Just errorCase
+                  else Nothing
+              )
     in
       map ChildMsg
         case ctx.viewMode of

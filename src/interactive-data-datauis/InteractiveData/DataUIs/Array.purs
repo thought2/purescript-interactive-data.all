@@ -10,11 +10,14 @@ module InteractiveData.DataUIs.Array
 import InteractiveData.Core.Prelude
 
 import Chameleon as C
+import Control.Alt ((<|>))
 import Data.Array as Array
 import Data.FunctorWithIndex (mapWithIndex)
 import Data.Traversable (traverse)
 import DataMVC.Types.DataUI (applyWrap, runDataUi)
+import InteractiveData.App.FastForward.Inline as FastForwardInline
 import InteractiveData.App.UI.ActionButton as UIActionButton
+import InteractiveData.Core.Types.DataTree as DT
 import InteractiveData.Core.Types.IDSurface (runIdSurface)
 
 -------------------------------------------------------------------------------
@@ -44,7 +47,12 @@ extract item (ArrayState s) =
 --- Init
 -------------------------------------------------------------------------------
 
-init :: forall sta a. { init :: Maybe a -> sta } -> Maybe (Array a) -> ArrayState sta
+init
+  :: forall sta a
+   . { init :: Maybe a -> sta
+     }
+  -> Maybe (Array a)
+  -> ArrayState sta
 init item = case _ of
   Nothing -> ArrayState []
   Just a -> ArrayState $ map (Just >>> item.init) a
@@ -92,7 +100,9 @@ update item msg (ArrayState state) =
 view
   :: forall html msg sta
    . IDHtml html
-  => { view :: sta -> html msg }
+  => { view :: sta -> html msg
+     , childDataTrees :: Array (DataTree html msg)
+     }
   -> ArrayState sta
   -> html (ArrayMsg msg)
 view cfg (ArrayState items) =
@@ -113,11 +123,12 @@ view cfg (ArrayState items) =
       case ctx.viewMode of
         Standalone ->
           el.root []
-            ( items #
-                mapWithIndex \index item ->
-                  el.item []
-                    [ viewItem (pick cfg) index item
-                    ]
+            ( Array.zip items cfg.childDataTrees
+                #
+                  mapWithIndex \index (item /\ childDataTree) ->
+                    el.item []
+                      [ viewItem (pick cfg) index childDataTree item
+                      ]
             )
         Inline ->
           el.root []
@@ -129,9 +140,10 @@ viewItem
    . IDHtml html
   => { view :: sta -> html msg }
   -> Int
+  -> DataTree html msg
   -> sta
   -> html (ArrayMsg msg)
-viewItem item index state =
+viewItem _ index childDataTree _ =
   withCtx \ctx ->
     let
       el =
@@ -148,17 +160,17 @@ viewItem item index state =
 
       newPath = ctx.path <> [ SegField $ SegDynamicIndex index ]
 
-    -- trivialTrees :: Array (Array DataPathSegment /\ DataTree html msg)
-    -- trivialTrees = DT.digTrivialTrees
-    --   newPath
-    --   tree
+      trivialTrees :: Array (Array DataPathSegment /\ DataTree html msg)
+      trivialTrees = DT.digTrivialTrees
+        newPath
+        childDataTree
 
     in
       el.root []
         [ el.item []
             [ putCtx ctx { path = newPath, viewMode = Inline }
                 $ EntryMsg index
-                <$> item.view state
+                <$> FastForwardInline.view trivialTrees
             ]
         , el.actions []
             [ UIActionButton.view
@@ -204,26 +216,27 @@ actions =
 --- DataUI
 -------------------------------------------------------------------------------
 
-type CfgArray :: forall k. k -> Type
-type CfgArray msg =
+type CfgArray a =
   { text :: Maybe String
+  , init :: Maybe (Array a)
   }
 
-defaultCfgArray :: CfgArray ArrayMsg
+defaultCfgArray :: forall a. CfgArray a
 defaultCfgArray =
   { text: Nothing
+  , init: Nothing
   }
 
 array
   :: forall opt html fm fs msg sta a
-   . OptArgs (CfgArray ArrayMsg) opt
+   . OptArgs (CfgArray a) opt
   => IDHtml html
   => opt
   -> DataUI (IDSurface html) fm fs msg sta a
   -> DataUI (IDSurface html) fm fs (ArrayMsg (fm msg)) (ArrayState (fs sta)) (Array a)
 array opt dataUi =
   let
-    cfg :: CfgArray ArrayMsg
+    cfg :: CfgArray a
     cfg = getAllArgs defaultCfgArray opt
 
     dataUi' :: DataUI (IDSurface html) fm fs (fm msg) (fs sta) a
@@ -255,17 +268,25 @@ array opt dataUi =
                     dataTree = runIdSurface srfCtx $ itf.view state'
                   in
                     SegDynamicIndex index /\ map (EntryMsg index) dataTree
+
+                childDataTrees :: Array (DataTree html (fm msg))
+                childDataTrees = items
+                  #
+                    map
+                      (\item -> runIdSurface srfCtx $ itf.view item)
+
+                fields = mapWithIndex mkChildren items
               in
                 DataTree
-                  { view: view { view: view' } state
+                  { view: view { view: view', childDataTrees } state
                   , actions
-                  , children: Fields (mapWithIndex mkChildren items)
+                  , children: Fields fields
                   , meta: Nothing
                   , text: cfg.text
                   }
           , extract: extract (pick itf)
           , update: update (pick itf)
-          , init: init (pick itf)
+          , init: \initGlobal -> init (pick itf) (initGlobal <|> cfg.init)
           }
 
 array_

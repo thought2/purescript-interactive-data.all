@@ -1,10 +1,12 @@
 module InteractiveData.Entry
-  ( InteractiveDataApp
-  , DataUI'
+  ( DataUI'
+  , DataUI_
+  , InteractiveDataApp
   , ToAppCfg
   , ToAppMandatory
   , ToAppOptional
   , defaultToAppCfg
+  , mkDataError
   , toApp
   ) where
 
@@ -12,15 +14,16 @@ import Prelude
 
 import Chameleon (class Html)
 import Data.Maybe (Maybe(..))
-import DataMVC.Types (DataUI, DataUiInterface, DataResult)
+import DataMVC.Types (DataErrorCase(..), DataResult, DataUI, DataUiInterface)
+import DataMVC.Types.DataError (DataError(..))
 import InteractiveData.App (AppMsg, AppState)
 import InteractiveData.App as App
 import InteractiveData.App.WrapData (WrapMsg, WrapState)
 import InteractiveData.App.WrapData as App.WrapData
-import InteractiveData.Core (class IDHtml, IDSurface)
+import InteractiveData.Core (IDSurface)
 import InteractiveData.Core.Classes.OptArgs (class OptArgsMixed, getAllArgsMixed)
 import InteractiveData.Run as Run
-import InteractiveData.Run.Types.HtmlT (IDHtmlT)
+import InteractiveData.Core.Types.IDHtmlT (IDHtmlT)
 import MVC.Types (UI)
 
 --------------------------------------------------------------------------------
@@ -32,10 +35,11 @@ type InteractiveDataApp html msg sta a =
   , extract :: sta -> DataResult a
   }
 
-type DataUI' msg sta typ =
-  forall html
-   . IDHtml html
-  => DataUI (IDSurface html) WrapMsg WrapState msg sta typ
+type DataUI' html msg sta a =
+  DataUI (IDSurface (IDHtmlT html)) WrapMsg WrapState msg sta a
+
+type DataUI_ html fm fs msg sta typ =
+  DataUI (IDSurface (IDHtmlT html)) fm fs msg sta typ
 
 --------------------------------------------------------------------------------
 --- Functions
@@ -52,6 +56,7 @@ type ToAppOptional a r =
   ( initData :: Maybe a
   , fullscreen :: Boolean
   , showLogo :: Boolean
+  , showMenuOnStart :: Boolean
   | r
   )
 
@@ -60,6 +65,7 @@ defaultToAppCfg =
   { initData: Nothing
   , fullscreen: false
   , showLogo: true
+  , showMenuOnStart: true
   }
 
 toApp
@@ -77,7 +83,7 @@ toApp given dataUi =
     cfg :: ToAppCfg a
     cfg = getAllArgsMixed defaultToAppCfg given
 
-    { name, fullscreen, initData, showLogo } = cfg
+    { name, fullscreen, initData, showLogo, showMenuOnStart } = cfg
 
     interface :: DataUiInterface html (AppMsg (WrapMsg msg)) (AppState (WrapState sta)) a
     interface =
@@ -87,7 +93,7 @@ toApp given dataUi =
         , fullscreen
         , showLogo
         }
-        $ App.wrapApp dataUi
+        $ App.wrapApp { showMenuOnStart } dataUi
 
     ui :: UI html (AppMsg (WrapMsg msg)) (AppState (WrapState sta))
     ui = Run.getUi { initData } interface
@@ -98,3 +104,10 @@ toApp given dataUi =
     { ui
     , extract
     }
+
+--------------------------------------------------------------------------------
+--- Utils
+--------------------------------------------------------------------------------
+
+mkDataError :: String -> DataError
+mkDataError msg = DataError [] $ DataErrMsg msg
