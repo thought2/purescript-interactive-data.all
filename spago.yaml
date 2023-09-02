@@ -37,13 +37,35 @@ package:
     - variant: ">=8.0.0 <9.0.0"
   name: interactive-data
   publish:
-    version: 3.0.0
+    version: 4.0.0
     license: BSD-3-Clause
     location:
       githubOwner: thought2
       githubRepo: purescript-interactive-data.all
 workspace:
-  extra_packages: {}
+  extra_packages:
+    chameleon-halogen: 1.0.3
+    tidy:
+      git: https://github.com/natefaubion/purescript-tidy.git
+      ref: v0.10.0
+      dependencies:
+        - arrays
+        - control
+        - dodo-printer
+        - either
+        - foldable-traversable
+        - lists
+        - maybe
+        - newtype
+        - ordered-collections
+        - partial
+        - prelude
+        - language-cst-parser
+        - strings
+        - tuples
+    ts-bridge:
+      git: https://github.com/thought2/purescript-ts-bridge.git
+      ref: ca18c863330a383bf67bce452af75e9c089693ce
   package_set:
     registry: 36.0.0
   build_opts:

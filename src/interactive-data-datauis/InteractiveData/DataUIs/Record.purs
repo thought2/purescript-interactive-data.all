@@ -74,7 +74,9 @@ viewRow _ (seg /\ tree) = withCtx \ctx ->
     newPath = ctx.path <> [ SegField seg ]
 
     el =
-      { root: C.div
+      { root: styleNode C.div
+          [ "overflow-x: auto"
+          ]
       }
 
     trivialTrees :: Array (Array DataPathSegment /\ DataTree html msg)
@@ -92,12 +94,17 @@ mkSurface
   :: forall html msg
    . IDHtml html
   => { text :: Maybe String
-     , mkSegment :: Int -> String -> DataPathSegmentField
+     , mode :: RecordMode
      }
   -> Array (ViewResult (IDSurface html) msg)
   -> IDSurface html msg
-mkSurface { mkSegment, text } opts = IDSurface \ctx ->
+mkSurface { mode, text } opts = IDSurface \ctx ->
   let
+    mkSegment :: Int -> String -> DataPathSegmentField
+    mkSegment ix = case mode of
+      Keys -> mkSegmentKey ix
+      Indices -> mkSegmentIndex ix
+
     fields :: Array (DataPathSegmentField /\ DataTree html msg)
     fields = opts # mapWithIndex
       ( \ix x ->
@@ -148,9 +155,7 @@ record opt dataUis =
   in
     R.dataUiRecord
       { viewEntries: mkSurface
-          { mkSegment: case cfg.mode of
-              Keys -> mkSegmentKey
-              Indices -> mkSegmentIndex
+          { mode: cfg.mode
           , text: cfg.text
           }
       }
